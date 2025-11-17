@@ -1,0 +1,24 @@
+[package]
+description = "The terminal user interface (TUI) for Zed"
+edition.workspace = true
+name = "tui"
+version = "0.1.0"
+
+[lints]
+workspace = true
+
+[lib]
+name = "tui"
+path = "src/lib.rs"
+
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+crossterm = "0.28.1"
+log.workspace = true
+paths.workspace = true
+ratatui = "0.29.0"
+rayon.workspace = true
+release_channel.workspace = true
+util.workspace = true
+zlog.workspace = true

@@ -183,6 +183,7 @@ members = [
     "crates/time_format",
     "crates/title_bar",
     "crates/toolchain_selector",
+    "crates/tui",
     "crates/ui",
     "crates/ui_input",
     "crates/ui_macros",
@@ -199,6 +200,7 @@ members = [
     "crates/worktree",
     "crates/x_ai",
     "crates/zed",
+    "crates/zedtui",
     "crates/zed_actions",
     "crates/zed_env_vars",
     "crates/zeta",
@@ -415,6 +417,7 @@ theme_selector = { path = "crates/theme_selector" }
 time_format = { path = "crates/time_format" }
 title_bar = { path = "crates/title_bar" }
 toolchain_selector = { path = "crates/toolchain_selector" }
+tui = { path = "crates/tui" }
 ui = { path = "crates/ui" }
 ui_input = { path = "crates/ui_input" }
 ui_macros = { path = "crates/ui_macros" }
@@ -460,7 +463,7 @@ async-recursion = "1.0.0"
 async-tar = "0.5.1"
 async-task = "4.7"
 async-trait = "0.1"
-async-tungstenite = "0.31.0"
+async-tungstenite = "0.32.0"
 async_zip = { version = "0.0.17", features = ["deflate", "deflate64"] }
 aws-config = { version = "1.6.1", features = ["behavior-version-latest"] }
 aws-credential-types = { version = "1.2.2", features = [
