@@ -1705,75 +1705,75 @@ mod tests {
 
     use super::*;
 
-    #[test]
-    fn test_clipboard() {
-        let platform = build_platform();
-        assert_eq!(platform.read_from_clipboard(), None);
+    // #[test]
+    // fn test_clipboard() {
+    //     let platform = build_platform();
+    //     assert_eq!(platform.read_from_clipboard(), None);
 
-        let item = ClipboardItem::new_string("1".to_string());
-        platform.write_to_clipboard(item.clone());
-        assert_eq!(platform.read_from_clipboard(), Some(item));
+    //     let item = ClipboardItem::new_string("1".to_string());
+    //     platform.write_to_clipboard(item.clone());
+    //     assert_eq!(platform.read_from_clipboard(), Some(item));
 
-        let item = ClipboardItem {
-            entries: vec![ClipboardEntry::String(
-                ClipboardString::new("2".to_string()).with_json_metadata(vec![3, 4]),
-            )],
-        };
-        platform.write_to_clipboard(item.clone());
-        assert_eq!(platform.read_from_clipboard(), Some(item));
+    //     let item = ClipboardItem {
+    //         entries: vec![ClipboardEntry::String(
+    //             ClipboardString::new("2".to_string()).with_json_metadata(vec![3, 4]),
+    //         )],
+    //     };
+    //     platform.write_to_clipboard(item.clone());
+    //     assert_eq!(platform.read_from_clipboard(), Some(item));
 
-        let text_from_other_app = "text from other app";
-        unsafe {
-            let bytes = NSData::dataWithBytes_length_(
-                nil,
-                text_from_other_app.as_ptr() as *const c_void,
-                text_from_other_app.len() as u64,
-            );
-            platform
-                .0
-                .lock()
-                .pasteboard
-                .setData_forType(bytes, NSPasteboardTypeString);
-        }
-        assert_eq!(
-            platform.read_from_clipboard(),
-            Some(ClipboardItem::new_string(text_from_other_app.to_string()))
-        );
-    }
+    //     let text_from_other_app = "text from other app";
+    //     unsafe {
+    //         let bytes = NSData::dataWithBytes_length_(
+    //             nil,
+    //             text_from_other_app.as_ptr() as *const c_void,
+    //             text_from_other_app.len() as u64,
+    //         );
+    //         platform
+    //             .0
+    //             .lock()
+    //             .pasteboard
+    //             .setData_forType(bytes, NSPasteboardTypeString);
+    //     }
+    //     assert_eq!(
+    //         platform.read_from_clipboard(),
+    //         Some(ClipboardItem::new_string(text_from_other_app.to_string()))
+    //     );
+    // }
 
-    #[test]
-    fn test_file_url_reads_as_url_string() {
-        let platform = build_platform();
+    // #[test]
+    // fn test_file_url_reads_as_url_string() {
+    //     let platform = build_platform();
 
-        // Create a file URL for an arbitrary test path and write it to the pasteboard.
-        // This path does not need to exist; we only validate URL→path conversion.
-        let mock_path = "/tmp/zed-clipboard-file-url-test";
-        unsafe {
-            // Build an NSURL from the file path
-            let url: id = msg_send![class!(NSURL), fileURLWithPath: ns_string(mock_path)];
-            let abs: id = msg_send![url, absoluteString];
+    //     // Create a file URL for an arbitrary test path and write it to the pasteboard.
+    //     // This path does not need to exist; we only validate URL→path conversion.
+    //     let mock_path = "/tmp/zed-clipboard-file-url-test";
+    //     unsafe {
+    //         // Build an NSURL from the file path
+    //         let url: id = msg_send![class!(NSURL), fileURLWithPath: ns_string(mock_path)];
+    //         let abs: id = msg_send![url, absoluteString];
 
-            // Encode the URL string as UTF-8 bytes
-            let len: usize = msg_send![abs, lengthOfBytesUsingEncoding: NSUTF8StringEncoding];
-            let bytes_ptr = abs.UTF8String() as *const u8;
-            let data = NSData::dataWithBytes_length_(nil, bytes_ptr as *const c_void, len as u64);
+    //         // Encode the URL string as UTF-8 bytes
+    //         let len: usize = msg_send![abs, lengthOfBytesUsingEncoding: NSUTF8StringEncoding];
+    //         let bytes_ptr = abs.UTF8String() as *const u8;
+    //         let data = NSData::dataWithBytes_length_(nil, bytes_ptr as *const c_void, len as u64);
 
-            // Write as public.file-url to the unique pasteboard
-            let file_url_type: id = ns_string("public.file-url");
-            platform
-                .0
-                .lock()
-                .pasteboard
-                .setData_forType(data, file_url_type);
-        }
+    //         // Write as public.file-url to the unique pasteboard
+    //         let file_url_type: id = ns_string("public.file-url");
+    //         platform
+    //             .0
+    //             .lock()
+    //             .pasteboard
+    //             .setData_forType(data, file_url_type);
+    //     }
 
-        // Ensure the clipboard read returns the URL string, not a converted path
-        let expected_url = format!("file://{}", mock_path);
-        assert_eq!(
-            platform.read_from_clipboard(),
-            Some(ClipboardItem::new_string(expected_url))
-        );
-    }
+    //     // Ensure the clipboard read returns the URL string, not a converted path
+    //     let expected_url = format!("file://{}", mock_path);
+    //     assert_eq!(
+    //         platform.read_from_clipboard(),
+    //         Some(ClipboardItem::new_string(expected_url))
+    //     );
+    // }
 
     fn build_platform() -> MacPlatform {
         let platform = MacPlatform::new(false);

@@ -2,6 +2,7 @@ use anyhow::Context as _;
 use chrono::NaiveDateTime;
 
 use super::*;
+use sea_orm::DbBackend;
 
 impl Database {
     /// Creates a new user.
@@ -237,26 +238,57 @@ impl Database {
     }
 
     /// Find users where github_login ILIKE name_query.
+    ///
+    /// This uses a Postgres-specific ordering operator (`<->`) when running against
+    /// Postgres, but falls back to a SQLite-compatible query when the backend is SQLite.
     pub async fn fuzzy_search_users(&self, name_query: &str, limit: u32) -> Result<Vec<User>> {
         self.transaction(|tx| async {
             let tx = tx;
             let like_string = Self::fuzzy_like_string(name_query);
-            let query = "
-                SELECT users.*
-                FROM users
-                WHERE github_login ILIKE $1
-                ORDER BY github_login <-> $2
-                LIMIT $3
-            ";
 
-            Ok(user::Entity::find()
-                .from_raw_sql(Statement::from_sql_and_values(
-                    self.pool.get_database_backend(),
-                    query,
-                    vec![like_string.into(), name_query.into(), limit.into()],
-                ))
-                .all(&*tx)
-                .await?)
+            // Use Postgres-specific ranking when running against Postgres.
+            if self.pool.get_database_backend() == DbBackend::Postgres {
+                let query = "
+                    SELECT users.*
+                    FROM users
+                    WHERE github_login ILIKE $1
+                    ORDER BY github_login <-> $2
+                    LIMIT $3
+                ";
+
+                Ok(user::Entity::find()
+                    .from_raw_sql(Statement::from_sql_and_values(
+                        self.pool.get_database_backend(),
+                        query,
+                        vec![like_string.into(), name_query.into(), limit.into()],
+                    ))
+                    .all(&*tx)
+                    .await?)
+            } else {
+                // Fallback for SQLite (and other backends without the <-> operator):
+                // - perform a case-insensitive LIKE match
+                // - order simply by github_login (case-insensitive) as an approximation
+                //
+                // Use `UPPER(...) LIKE UPPER(?)` to be portable across SQLite. The
+                // parameter placeholder `?` is appropriate for SQLite-backed statements
+                // when using `Statement::from_sql_and_values`.
+                let query = "
+                    SELECT users.*
+                    FROM users
+                    WHERE UPPER(github_login) LIKE UPPER(?)
+                    ORDER BY github_login COLLATE NOCASE
+                    LIMIT ?
+                ";
+
+                Ok(user::Entity::find()
+                    .from_raw_sql(Statement::from_sql_and_values(
+                        self.pool.get_database_backend(),
+                        query,
+                        vec![like_string.into(), limit.into()],
+                    ))
+                    .all(&*tx)
+                    .await?)
+            }
         })
         .await
     }

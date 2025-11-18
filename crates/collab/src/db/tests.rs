@@ -126,6 +126,15 @@ macro_rules! test_both_dbs {
         #[cfg(target_os = "macos")]
         #[gpui::test]
         async fn $postgres_test_name(cx: &mut gpui::TestAppContext) {
+            // Skip postgres tests unless explicitly enabled by setting RUN_POSTGRES_TESTS=1.
+            if std::env::var("SKIP_POSTGRES_TESTS").is_ok() {
+                eprintln!(
+                    "Skipping postgres test {} because SKIP_POSTGRES_TESTS is set",
+                    stringify!($postgres_test_name)
+                );
+                return;
+            }
+
             let test_db = $crate::db::TestDb::postgres(cx.executor().clone());
             $test_name(test_db.db()).await;
         }

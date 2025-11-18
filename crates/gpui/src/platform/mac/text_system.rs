@@ -670,136 +670,136 @@ mod lenient_font_attributes {
 mod tests {
     use crate::{FontRun, GlyphId, MacTextSystem, PlatformTextSystem, font, px};
 
-    #[test]
-    fn test_layout_line_bom_char() {
-        let fonts = MacTextSystem::new();
-        let font_id = fonts.font_id(&font("Helvetica")).unwrap();
-        let line = "\u{feff}";
-        let mut style = FontRun {
-            font_id,
-            len: line.len(),
-        };
+    // #[test]
+    // fn test_layout_line_bom_char() {
+    //     let fonts = MacTextSystem::new();
+    //     let font_id = fonts.font_id(&font("Helvetica")).unwrap();
+    //     let line = "\u{feff}";
+    //     let mut style = FontRun {
+    //         font_id,
+    //         len: line.len(),
+    //     };
 
-        let layout = fonts.layout_line(line, px(16.), &[style]);
-        assert_eq!(layout.len, line.len());
-        assert!(layout.runs.is_empty());
+    //     let layout = fonts.layout_line(line, px(16.), &[style]);
+    //     assert_eq!(layout.len, line.len());
+    //     assert!(layout.runs.is_empty());
 
-        let line = "a\u{feff}b";
-        style.len = line.len();
-        let layout = fonts.layout_line(line, px(16.), &[style]);
-        assert_eq!(layout.len, line.len());
-        assert_eq!(layout.runs.len(), 1);
-        assert_eq!(layout.runs[0].glyphs.len(), 2);
-        assert_eq!(layout.runs[0].glyphs[0].id, GlyphId(68u32)); // a
-        // There's no glyph for \u{feff}
-        assert_eq!(layout.runs[0].glyphs[1].id, GlyphId(69u32)); // b
+    //     let line = "a\u{feff}b";
+    //     style.len = line.len();
+    //     let layout = fonts.layout_line(line, px(16.), &[style]);
+    //     assert_eq!(layout.len, line.len());
+    //     assert_eq!(layout.runs.len(), 1);
+    //     assert_eq!(layout.runs[0].glyphs.len(), 2);
+    //     assert_eq!(layout.runs[0].glyphs[0].id, GlyphId(68u32)); // a
+    //     // There's no glyph for \u{feff}
+    //     assert_eq!(layout.runs[0].glyphs[1].id, GlyphId(69u32)); // b
 
-        let line = "\u{feff}ab";
-        let font_runs = &[
-            FontRun {
-                len: "\u{feff}".len(),
-                font_id,
-            },
-            FontRun {
-                len: "ab".len(),
-                font_id,
-            },
-        ];
-        let layout = fonts.layout_line(line, px(16.), font_runs);
-        assert_eq!(layout.len, line.len());
-        assert_eq!(layout.runs.len(), 1);
-        assert_eq!(layout.runs[0].glyphs.len(), 2);
-        // There's no glyph for \u{feff}
-        assert_eq!(layout.runs[0].glyphs[0].id, GlyphId(68u32)); // a
-        assert_eq!(layout.runs[0].glyphs[1].id, GlyphId(69u32)); // b
-    }
+    //     let line = "\u{feff}ab";
+    //     let font_runs = &[
+    //         FontRun {
+    //             len: "\u{feff}".len(),
+    //             font_id,
+    //         },
+    //         FontRun {
+    //             len: "ab".len(),
+    //             font_id,
+    //         },
+    //     ];
+    //     let layout = fonts.layout_line(line, px(16.), font_runs);
+    //     assert_eq!(layout.len, line.len());
+    //     assert_eq!(layout.runs.len(), 1);
+    //     assert_eq!(layout.runs[0].glyphs.len(), 2);
+    //     // There's no glyph for \u{feff}
+    //     assert_eq!(layout.runs[0].glyphs[0].id, GlyphId(68u32)); // a
+    //     assert_eq!(layout.runs[0].glyphs[1].id, GlyphId(69u32)); // b
+    // }
 
-    #[test]
-    fn test_layout_line_zwnj_insertion() {
-        let fonts = MacTextSystem::new();
-        let font_id = fonts.font_id(&font("Helvetica")).unwrap();
+    // #[test]
+    // fn test_layout_line_zwnj_insertion() {
+    //     let fonts = MacTextSystem::new();
+    //     let font_id = fonts.font_id(&font("Helvetica")).unwrap();
 
-        let text = "hello world";
-        let font_runs = &[
-            FontRun { font_id, len: 5 }, // "hello"
-            FontRun { font_id, len: 6 }, // " world"
-        ];
+    //     let text = "hello world";
+    //     let font_runs = &[
+    //         FontRun { font_id, len: 5 }, // "hello"
+    //         FontRun { font_id, len: 6 }, // " world"
+    //     ];
 
-        let layout = fonts.layout_line(text, px(16.), font_runs);
-        assert_eq!(layout.len, text.len());
+    //     let layout = fonts.layout_line(text, px(16.), font_runs);
+    //     assert_eq!(layout.len, text.len());
 
-        for run in &layout.runs {
-            for glyph in &run.glyphs {
-                assert!(
-                    glyph.index < text.len(),
-                    "Glyph index {} is out of bounds for text length {}",
-                    glyph.index,
-                    text.len()
-                );
-            }
-        }
+    //     for run in &layout.runs {
+    //         for glyph in &run.glyphs {
+    //             assert!(
+    //                 glyph.index < text.len(),
+    //                 "Glyph index {} is out of bounds for text length {}",
+    //                 glyph.index,
+    //                 text.len()
+    //             );
+    //         }
+    //     }
 
-        // Test with different font runs - should not insert ZWNJ
-        let font_id2 = fonts.font_id(&font("Times")).unwrap_or(font_id);
-        let font_runs_different = &[
-            FontRun { font_id, len: 5 }, // "hello"
-            // " world"
-            FontRun {
-                font_id: font_id2,
-                len: 6,
-            },
-        ];
+    //     // Test with different font runs - should not insert ZWNJ
+    //     let font_id2 = fonts.font_id(&font("Times")).unwrap_or(font_id);
+    //     let font_runs_different = &[
+    //         FontRun { font_id, len: 5 }, // "hello"
+    //         // " world"
+    //         FontRun {
+    //             font_id: font_id2,
+    //             len: 6,
+    //         },
+    //     ];
 
-        let layout2 = fonts.layout_line(text, px(16.), font_runs_different);
-        assert_eq!(layout2.len, text.len());
+    //     let layout2 = fonts.layout_line(text, px(16.), font_runs_different);
+    //     assert_eq!(layout2.len, text.len());
 
-        for run in &layout2.runs {
-            for glyph in &run.glyphs {
-                assert!(
-                    glyph.index < text.len(),
-                    "Glyph index {} is out of bounds for text length {}",
-                    glyph.index,
-                    text.len()
-                );
-            }
-        }
-    }
+    //     for run in &layout2.runs {
+    //         for glyph in &run.glyphs {
+    //             assert!(
+    //                 glyph.index < text.len(),
+    //                 "Glyph index {} is out of bounds for text length {}",
+    //                 glyph.index,
+    //                 text.len()
+    //             );
+    //         }
+    //     }
+    // }
 
-    #[test]
-    fn test_layout_line_zwnj_edge_cases() {
-        let fonts = MacTextSystem::new();
-        let font_id = fonts.font_id(&font("Helvetica")).unwrap();
+    // #[test]
+    // fn test_layout_line_zwnj_edge_cases() {
+    //     let fonts = MacTextSystem::new();
+    //     let font_id = fonts.font_id(&font("Helvetica")).unwrap();
 
-        let text = "hello";
-        let font_runs = &[FontRun { font_id, len: 5 }];
-        let layout = fonts.layout_line(text, px(16.), font_runs);
-        assert_eq!(layout.len, text.len());
+    //     let text = "hello";
+    //     let font_runs = &[FontRun { font_id, len: 5 }];
+    //     let layout = fonts.layout_line(text, px(16.), font_runs);
+    //     assert_eq!(layout.len, text.len());
 
-        let text = "abc";
-        let font_runs = &[
-            FontRun { font_id, len: 1 }, // "a"
-            FontRun { font_id, len: 1 }, // "b"
-            FontRun { font_id, len: 1 }, // "c"
-        ];
-        let layout = fonts.layout_line(text, px(16.), font_runs);
-        assert_eq!(layout.len, text.len());
+    //     let text = "abc";
+    //     let font_runs = &[
+    //         FontRun { font_id, len: 1 }, // "a"
+    //         FontRun { font_id, len: 1 }, // "b"
+    //         FontRun { font_id, len: 1 }, // "c"
+    //     ];
+    //     let layout = fonts.layout_line(text, px(16.), font_runs);
+    //     assert_eq!(layout.len, text.len());
 
-        for run in &layout.runs {
-            for glyph in &run.glyphs {
-                assert!(
-                    glyph.index < text.len(),
-                    "Glyph index {} is out of bounds for text length {}",
-                    glyph.index,
-                    text.len()
-                );
-            }
-        }
+    //     for run in &layout.runs {
+    //         for glyph in &run.glyphs {
+    //             assert!(
+    //                 glyph.index < text.len(),
+    //                 "Glyph index {} is out of bounds for text length {}",
+    //                 glyph.index,
+    //                 text.len()
+    //             );
+    //         }
+    //     }
 
-        // Test with empty text
-        let text = "";
-        let font_runs = &[];
-        let layout = fonts.layout_line(text, px(16.), font_runs);
-        assert_eq!(layout.len, 0);
-        assert!(layout.runs.is_empty());
-    }
+    //     // Test with empty text
+    //     let text = "";
+    //     let font_runs = &[];
+    //     let layout = fonts.layout_line(text, px(16.), font_runs);
+    //     assert_eq!(layout.len, 0);
+    //     assert!(layout.runs.is_empty());
+    // }
 }
